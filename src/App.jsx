@@ -26,8 +26,9 @@ const products = productsFromServer.map(product => {
   };
 });
 
-function getVisibleProducts(currentProducts, { ownerFilter }) {
+function getVisibleProducts(currentProducts, { ownerFilter, nameProductFilter }) {
   let visibleProducts = [...currentProducts];
+  const normalizedNameProductFilter = nameProductFilter.toLocaleLowerCase().trim();
 
   if (ownerFilter !== OWNER_DEFAULT_VALUE) {
     visibleProducts = visibleProducts.filter(
@@ -35,13 +36,22 @@ function getVisibleProducts(currentProducts, { ownerFilter }) {
     );
   }
 
+  if (normalizedNameProductFilter) {
+    visibleProducts = visibleProducts.filter(product => {
+      const normalizedProductName = product.name.toLocaleLowerCase().trim();
+
+      return normalizedProductName.includes(normalizedNameProductFilter);
+    })
+  }
+
   return visibleProducts;
 }
 
 export const App = () => {
   const [ownerFilter, setOwnerFilter] = useState(OWNER_DEFAULT_VALUE);
+  const [nameProductFilter, setNameProductFilter] = useState('');
 
-  const visibleProducts = getVisibleProducts(products, { ownerFilter });
+  const visibleProducts = getVisibleProducts(products, { ownerFilter, nameProductFilter });
 
   return (
     <div className="section">
@@ -84,21 +94,24 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={nameProductFilter}
+                  onChange={event => setNameProductFilter(event.target.value.trimStart())}
                 />
 
                 <span className="icon is-left">
                   <i className="fas fa-search" aria-hidden="true" />
                 </span>
 
-                <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
-                </span>
+                {nameProductFilter !== '' && (
+                  <span className="icon is-right">
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setNameProductFilter('')}
+                    />
+                  </span>
+                )}
               </p>
             </div>
 
