@@ -9,6 +9,7 @@ import productsFromServer from './api/products';
 
 const COLUMNS = ['ID', 'Product', 'Category', 'User'];
 const OWNER_DEFAULT_VALUE = 'All';
+const CATEGORY_DEFAULT_VALUE = 'All';
 
 const getCategory = categoryId =>
   categoriesFromServer.find(category => category.id === categoryId);
@@ -28,10 +29,10 @@ const products = productsFromServer.map(product => {
 
 function getVisibleProducts(
   currentProducts,
-  { ownerFilter, nameProductFilter },
+  { ownerFilter, productNameFilter, categoryNameFilter },
 ) {
   let visibleProducts = [...currentProducts];
-  const normalizedNameProductFilter = nameProductFilter
+  const normalizedProductNameFilter = productNameFilter
     .toLocaleLowerCase()
     .trim();
 
@@ -41,12 +42,18 @@ function getVisibleProducts(
     );
   }
 
-  if (normalizedNameProductFilter) {
+  if (normalizedProductNameFilter) {
     visibleProducts = visibleProducts.filter(product => {
       const normalizedProductName = product.name.toLocaleLowerCase().trim();
 
-      return normalizedProductName.includes(normalizedNameProductFilter);
+      return normalizedProductName.includes(normalizedProductNameFilter);
     });
+  }
+
+  if (categoryNameFilter.length) {
+    visibleProducts = visibleProducts.filter(({ category }) =>
+      categoryNameFilter.includes(category.title),
+    );
   }
 
   return visibleProducts;
@@ -55,15 +62,36 @@ function getVisibleProducts(
 export const App = () => {
   const [ownerFilter, setOwnerFilter] = useState(OWNER_DEFAULT_VALUE);
   const [productNameFilter, setProductNameFilter] = useState('');
+  const [categoryNameFilter, setCategoryNameFilter] = useState([]);
 
   const visibleProducts = getVisibleProducts(products, {
     ownerFilter,
-    nameProductFilter: productNameFilter,
+    productNameFilter,
+    categoryNameFilter,
   });
 
   const handleResetFiltersButton = () => {
     setOwnerFilter(OWNER_DEFAULT_VALUE);
     setProductNameFilter('');
+    setCategoryNameFilter([]);
+  };
+
+  const handleAddCategory = categoryName => {
+    setCategoryNameFilter(categories => [...categories, categoryName]);
+  };
+
+  const handleRemoveCategory = categoryName => {
+    setCategoryNameFilter(categories =>
+      categories.filter(selectedCategory => selectedCategory !== categoryName),
+    );
+  };
+
+  const handleCategoryNameFilter = categoryName => {
+    if (categoryNameFilter.includes(categoryName)) {
+      handleRemoveCategory(categoryName);
+    } else {
+      handleAddCategory(categoryName);
+    }
   };
 
   return (
@@ -134,33 +162,27 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
+                className={cn('button is-success mr-6', {
+                  'is-outlined': categoryNameFilter.length,
+                })}
+                onClick={() => setCategoryNameFilter([])}
               >
-                All
+                {CATEGORY_DEFAULT_VALUE}
               </a>
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
-
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 4
-              </a>
+              {categoriesFromServer.map(category => (
+                <a
+                  key={category.id}
+                  data-cy="Category"
+                  className={cn('button mr-2 my-1', {
+                    'is-info': categoryNameFilter.includes(category.title),
+                  })}
+                  href="#/"
+                  onClick={() => handleCategoryNameFilter(category.title)}
+                >
+                  {category.title}
+                </a>
+              ))}
             </div>
 
             <div className="panel-block">
