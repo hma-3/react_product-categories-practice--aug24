@@ -54,17 +54,17 @@ function getVisibleProducts(
 
 export const App = () => {
   const [ownerFilter, setOwnerFilter] = useState(OWNER_DEFAULT_VALUE);
-  const [nameProductFilter, setNameProductFilter] = useState('');
+  const [productNameFilter, setProductNameFilter] = useState('');
 
   const visibleProducts = getVisibleProducts(products, {
     ownerFilter,
-    nameProductFilter,
+    nameProductFilter: productNameFilter,
   });
 
   const handleResetFiltersButton = () => {
     setOwnerFilter(OWNER_DEFAULT_VALUE);
-    setNameProductFilter('');
-  }
+    setProductNameFilter('');
+  };
 
   return (
     <div className="section">
@@ -107,9 +107,9 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value={nameProductFilter}
+                  value={productNameFilter}
                   onChange={event =>
-                    setNameProductFilter(event.target.value.trimStart())
+                    setProductNameFilter(event.target.value.trimStart())
                   }
                 />
 
@@ -117,13 +117,13 @@ export const App = () => {
                   <i className="fas fa-search" aria-hidden="true" />
                 </span>
 
-                {nameProductFilter !== '' && (
+                {productNameFilter !== '' && (
                   <span className="icon is-right">
                     <button
                       data-cy="ClearButton"
                       type="button"
                       className="delete"
-                      onClick={() => setNameProductFilter('')}
+                      onClick={() => setProductNameFilter('')}
                     />
                   </span>
                 )}
