@@ -1,11 +1,14 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
-import React from 'react';
+import React, { useState } from 'react';
 import './App.scss';
 import cn from 'classnames';
 
 import usersFromServer from './api/users';
 import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
+
+const COLUMNS = ['ID', 'Product', 'Category', 'User'];
+const OWNER_DEFAULT_VALUE = 'All';
 
 const getCategory = categoryId =>
   categoriesFromServer.find(category => category.id === categoryId);
@@ -23,10 +26,22 @@ const products = productsFromServer.map(product => {
   };
 });
 
-const COLUMNS = ['ID', 'Product', 'Category', 'User'];
+function getVisibleProducts(currentProducts, { ownerFilter }) {
+  let visibleProducts = [...currentProducts];
+
+  if (ownerFilter !== OWNER_DEFAULT_VALUE) {
+    visibleProducts = visibleProducts.filter(
+      ({ owner }) => owner.name === ownerFilter,
+    );
+  }
+
+  return visibleProducts;
+}
 
 export const App = () => {
-  const visibleProducts = [...products];
+  const [ownerFilter, setOwnerFilter] = useState(OWNER_DEFAULT_VALUE);
+
+  const visibleProducts = getVisibleProducts(products, { ownerFilter });
 
   return (
     <div className="section">
@@ -38,21 +53,28 @@ export const App = () => {
             <p className="panel-heading">Filters</p>
 
             <p className="panel-tabs has-text-weight-bold">
-              <a data-cy="FilterAllUsers" href="#/">
-                All
+              <a
+                data-cy="FilterAllUsers"
+                href="#/"
+                className={cn({
+                  'is-active': ownerFilter === OWNER_DEFAULT_VALUE,
+                })}
+                onClick={() => setOwnerFilter(OWNER_DEFAULT_VALUE)}
+              >
+                {OWNER_DEFAULT_VALUE}
               </a>
 
-              <a data-cy="FilterUser" href="#/">
-                User 1
-              </a>
-
-              <a data-cy="FilterUser" href="#/" className="is-active">
-                User 2
-              </a>
-
-              <a data-cy="FilterUser" href="#/">
-                User 3
-              </a>
+              {usersFromServer.map(user => (
+                <a
+                  key={user.id}
+                  data-cy="FilterUser"
+                  href="#/"
+                  className={cn({ 'is-active': ownerFilter === user.name })}
+                  onClick={() => setOwnerFilter(user.name)}
+                >
+                  {user.name}
+                </a>
+              ))}
             </p>
 
             <div className="panel-block">
