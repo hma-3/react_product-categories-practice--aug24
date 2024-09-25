@@ -26,9 +26,14 @@ const products = productsFromServer.map(product => {
   };
 });
 
-function getVisibleProducts(currentProducts, { ownerFilter, nameProductFilter }) {
+function getVisibleProducts(
+  currentProducts,
+  { ownerFilter, nameProductFilter },
+) {
   let visibleProducts = [...currentProducts];
-  const normalizedNameProductFilter = nameProductFilter.toLocaleLowerCase().trim();
+  const normalizedNameProductFilter = nameProductFilter
+    .toLocaleLowerCase()
+    .trim();
 
   if (ownerFilter !== OWNER_DEFAULT_VALUE) {
     visibleProducts = visibleProducts.filter(
@@ -41,7 +46,7 @@ function getVisibleProducts(currentProducts, { ownerFilter, nameProductFilter })
       const normalizedProductName = product.name.toLocaleLowerCase().trim();
 
       return normalizedProductName.includes(normalizedNameProductFilter);
-    })
+    });
   }
 
   return visibleProducts;
@@ -51,7 +56,15 @@ export const App = () => {
   const [ownerFilter, setOwnerFilter] = useState(OWNER_DEFAULT_VALUE);
   const [nameProductFilter, setNameProductFilter] = useState('');
 
-  const visibleProducts = getVisibleProducts(products, { ownerFilter, nameProductFilter });
+  const visibleProducts = getVisibleProducts(products, {
+    ownerFilter,
+    nameProductFilter,
+  });
+
+  const handleResetFiltersButton = () => {
+    setOwnerFilter(OWNER_DEFAULT_VALUE);
+    setNameProductFilter('');
+  }
 
   return (
     <div className="section">
@@ -95,7 +108,9 @@ export const App = () => {
                   className="input"
                   placeholder="Search"
                   value={nameProductFilter}
-                  onChange={event => setNameProductFilter(event.target.value.trimStart())}
+                  onChange={event =>
+                    setNameProductFilter(event.target.value.trimStart())
+                  }
                 />
 
                 <span className="icon is-left">
@@ -153,6 +168,7 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
+                onClick={handleResetFiltersButton}
               >
                 Reset all filters
               </a>
