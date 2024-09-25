@@ -1,4 +1,5 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
+/* eslint-disable function-paren-newline */
 import React, { useState } from 'react';
 import './App.scss';
 import cn from 'classnames';
@@ -29,7 +30,7 @@ const products = productsFromServer.map(product => {
 
 function getVisibleProducts(
   currentProducts,
-  { ownerFilter, productNameFilter, categoryNameFilter },
+  { ownerFilter, productNameFilter, categoryNameFilter, sorting },
 ) {
   let visibleProducts = [...currentProducts];
   const normalizedProductNameFilter = productNameFilter
@@ -56,18 +57,60 @@ function getVisibleProducts(
     );
   }
 
+  if (sorting.column) {
+    visibleProducts.sort((currentProduct, nextProduct) => {
+      let comparisonResult = 0;
+      let currentValue = '';
+      let nextValue = '';
+
+      switch (sorting.column) {
+        case 'ID':
+          currentValue = currentProduct.id;
+          nextValue = nextProduct.id;
+          break;
+        case 'Product':
+          currentValue = currentProduct.name;
+          nextValue = nextProduct.name;
+          break;
+        case 'Category':
+          currentValue = currentProduct.category.title;
+          nextValue = nextProduct.category.title;
+          break;
+        case 'User':
+          currentValue = currentProduct.owner.name;
+          nextValue = nextProduct.owner.name;
+          break;
+      }
+
+      if (typeof currentValue === 'string') {
+        comparisonResult = currentValue.localeCompare(nextValue);
+      } else {
+        comparisonResult = currentValue - nextValue;
+      }
+
+      return sorting.order === 'asc' ? comparisonResult : comparisonResult * -1;
+    })
+  }
+
   return visibleProducts;
 }
+
+console.log(products);
 
 export const App = () => {
   const [ownerFilter, setOwnerFilter] = useState(OWNER_DEFAULT_VALUE);
   const [productNameFilter, setProductNameFilter] = useState('');
   const [categoryNameFilter, setCategoryNameFilter] = useState([]);
+  const [sorting, setSorting] = useState({
+    column: null,
+    order: null,
+  })
 
   const visibleProducts = getVisibleProducts(products, {
     ownerFilter,
     productNameFilter,
     categoryNameFilter,
+    sorting,
   });
 
   const handleResetFiltersButton = () => {
@@ -93,6 +136,22 @@ export const App = () => {
       handleAddCategory(categoryName);
     }
   };
+
+  const handleSorting = column => {
+    const isColumnSelected = sorting.column === column;
+
+    if (!isColumnSelected) {
+      setSorting({ column, order: 'asc' });
+    }
+
+    if (isColumnSelected && sorting.order === 'asc') {
+      setSorting({ column, order: 'desc' });
+    }
+
+    if (isColumnSelected && sorting.order === 'desc') {
+      setSorting({ column: null, order: null });
+    }
+  }
 
   return (
     <div className="section">
@@ -211,11 +270,15 @@ export const App = () => {
                       <span className="is-flex is-flex-wrap-nowrap">
                         {column}
 
-                        {/* <a href="#/">
+                        <a href="#/" onClick={() => handleSorting(column)}>
                           <span className="icon">
-                            <i data-cy="SortIcon" className="fas fa-sort" />
+                            <i data-cy="SortIcon" className={cn('fas', {
+                              'fa-sort': sorting.column !== column,
+                              'fa-sort-up': sorting.column === column && sorting.order === 'asc',
+                              'fa-sort-down': sorting.column === column && sorting.order === 'desc',
+                            })} />
                           </span>
-                        </a> */}
+                        </a>
                       </span>
                     </th>
                   ))}
